@@ -19,7 +19,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	public String tableName = "locations";
 	public String fieldObjectId = "id";
 	public String fieldObjectName = "name";
-//	public String fieldObjectCount = "count";
 
 	// construtor
 	public DatabaseHandler(Context context) {
@@ -30,15 +29,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	public void onCreate(SQLiteDatabase db) {
 
 		String sql = "";
+		String sql_index = "";
 
 		sql += "CREATE TABLE IF NOT EXISTS " + tableName;
 		sql += " ( ";
 		sql += fieldObjectId + " INTEGER PRIMARY KEY AUTOINCREMENT, ";
 		sql += fieldObjectName + " TEXT ";
-//		sql += fieldObjectCount + " COUNT ";
 		sql += " ) ";
 
+		sql_index += "CREATE INDEX IF NOT EXISTS objName ON "+ tableName + "(" + fieldObjectName+")";
+
 		db.execSQL(sql);
+		db.execSQL(sql_index);
 	}
 
 	@Override
@@ -57,7 +59,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		for (String string : list) {
 			ContentValues values = new ContentValues();
 			values.put(fieldObjectName, string);
-//			values.put(fieldObjectCount, 0);
 			db.insert(tableName, null, values);
 		}
 		db.setTransactionSuccessful();
@@ -69,12 +70,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		List<MyObject> recordsList = new ArrayList<MyObject>();
 
 		String sql = "";
+
 		sql += "SELECT * FROM " + tableName;
 		sql += " WHERE " + fieldObjectName + " LIKE '" + searchTerm + "%'";
 		sql += " ORDER BY " + fieldObjectId + " DESC";
 		sql += " LIMIT 0,5";
 
-		SQLiteDatabase db = this.getWritableDatabase();
+		SQLiteDatabase db = this.getReadableDatabase();
 
 		Cursor cursor = db.rawQuery(sql, null);
 
