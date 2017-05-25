@@ -1,6 +1,7 @@
 package com.example.autocompletetextviewdb;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -14,6 +15,7 @@ public class CustomAutoCompleteTextChangedListener implements TextWatcher {
 	public CustomAutoCompleteTextChangedListener(Context context) {
 		this.context = context;
 	}
+
 
 	@Override
 	public void afterTextChanged(Editable s) {
@@ -35,12 +37,9 @@ public class CustomAutoCompleteTextChangedListener implements TextWatcher {
 		MainActivity mainActivity = ((MainActivity) context);
 
 		mainActivity.item = mainActivity.getItemsFromDb(userInput.toString());
-
 		mainActivity.myAdapter.notifyDataSetChanged();
 		mainActivity.myAdapter = new ArrayAdapter<String>(mainActivity,
 				android.R.layout.simple_dropdown_item_1line, mainActivity.item);
 		mainActivity.myAutoComplete.setAdapter(mainActivity.myAdapter);
-
 	}
-
 }

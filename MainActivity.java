@@ -1,94 +1,122 @@
 package com.example.autocompletetextviewdb;
 
-import java.util.List;
-
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
+import android.os.AsyncTask;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends Activity {
 
-	
-	CustomAutoCompleteView myAutoComplete;
+    CustomAutoCompleteView myAutoComplete;
+    ArrayAdapter<String> myAdapter;
+    DatabaseHandler databaseH;
+    String[] item = new String[]{"please Search.."};
 
-	// adapter para o auto-complete
-	ArrayAdapter<String> myAdapter;
+    protected void onCreate(Bundle savedInstanceState) {
 
-	DatabaseHandler databaseH;
+        myAsyncTask myAsyncTask;
 
-	// apenas para add um valor inicial
-	String[] item = new String[] { "Please search..." };
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+        myAsyncTask = new myAsyncTask();
+        myAsyncTask.execute();
+    }
 
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+        public class myAsyncTask extends AsyncTask<String, String, String> {
 
-		try {
+            @Override
+            protected String doInBackground(String... strings) {
+                try {
+                    InputStreamReader inputreader = new InputStreamReader(MainActivity.this.getAssets().open("dic.csv"), "euc-kr");
+                    BufferedReader buffereader = new BufferedReader(inputreader);
+                    List<String> list = new ArrayList<String>();
+                    String line;
 
-			// instanciando o database handler
-			databaseH = new DatabaseHandler(MainActivity.this);
+                    do {
+                        line = buffereader.readLine();
+                        list.add(line);
+                    } while (line != null);
 
-			// inserindo um simples dado para o database
-			insertSampleData();
+                    databaseH = new DatabaseHandler(MainActivity.this);
+                    databaseH.insert(list);
 
-			// autocompletetextview no activity_main.xml
-			myAutoComplete = (CustomAutoCompleteView) findViewById(R.id.myautocomplete);
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
 
-			// add o listener que vai sugerir os dados
-			myAutoComplete
-					.addTextChangedListener(new CustomAutoCompleteTextChangedListener(
-							this));
+            protected void onPostExecute(String s) {
+                myAutoComplete = (CustomAutoCompleteView) findViewById(R.id.myautocomplete);
 
-			// setando o adapter
-			myAdapter = new ArrayAdapter<String>(this,
-					android.R.layout.simple_dropdown_item_1line, item);
-			myAutoComplete.setAdapter(myAdapter);
+                myAutoComplete
+                        .addTextChangedListener(new CustomAutoCompleteTextChangedListener(
+                                MainActivity.this));
 
-		} catch (NullPointerException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+                myAdapter = new ArrayAdapter<String>(MainActivity.this,
+                        android.R.layout.simple_dropdown_item_1line, item);
 
-	public void insertSampleData() {
+                myAutoComplete.setAdapter(myAdapter);
+            }
+        }
+//		try {
+//			InputStreamReader inputreader = new InputStreamReader(this.getAssets().open("dic.csv"), "euc-kr");
+//			BufferedReader buffereader = new BufferedReader(inputreader);
+//			List<String> list = new ArrayList<String>();
+//			String line;
+//
+//			do {
+//				line = buffereader.readLine();
+//				list.add(line);
+//			} while(line!=null);
+//
+//			databaseH = new DatabaseHandler(MainActivity.this);
+//
+//			databaseH.insert(list);
+//
+//			myAutoComplete = (CustomAutoCompleteView) findViewById(R.id.myautocomplete);
+//
+//			myAutoComplete
+//					.addTextChangedListener(new CustomAutoCompleteTextChangedListener(
+//							this));
+//
+//			myAdapter = new ArrayAdapter<String>(this,
+//					android.R.layout.simple_dropdown_item_1line, item);
+//
+//			myAutoComplete.setAdapter(myAdapter);
+//
+//
+//		} catch (NullPointerException e) {
+//			e.printStackTrace();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 
-		// CREATE
-		databaseH.create(new MyObject("Janeiro"));
-		databaseH.create(new MyObject("Fevereiro"));
-		databaseH.create(new MyObject("Mar�o"));
-		databaseH.create(new MyObject("Abril"));
-		databaseH.create(new MyObject("Maio"));
-		databaseH.create(new MyObject("Junho"));
-		databaseH.create(new MyObject("Julho"));
-		databaseH.create(new MyObject("Agosto"));
-		databaseH.create(new MyObject("Setembro"));
-		databaseH.create(new MyObject("Outubro"));
-		databaseH.create(new MyObject("Novembro"));
-		databaseH.create(new MyObject("Dezembro"));
+    public String[] getItemsFromDb(String searchTerm) {
 
+        List<MyObject> products = databaseH.read(searchTerm);
 
-	}
+        int rowCount = products.size();
+        String[] item = new String[rowCount];
+        int x = 0;
 
-	// esta fun��o � usada no CustomAutoCompleteTextChangedListener.java
-	public String[] getItemsFromDb(String searchTerm) {
+        for (MyObject record : products) {
 
-		// add itens dinamicamente no array
-		List<MyObject> products = databaseH.read(searchTerm);
-		int rowCount = products.size();
+            item[x] = record.objectName;
+            x++;
+        }
 
-		String[] item = new String[rowCount];
-		int x = 0;
-
-		for (MyObject record : products) {
-
-			item[x] = record.objectName;
-			x++;
-		}
-
-		return item;
-	}
-
+        return item;
+    }
 }

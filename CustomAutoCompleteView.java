@@ -2,6 +2,7 @@ package com.example.autocompletetextviewdb;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.AutoCompleteTextView;
 
 public class CustomAutoCompleteView extends AutoCompleteTextView {
@@ -25,7 +26,7 @@ public class CustomAutoCompleteView extends AutoCompleteTextView {
 	@Override
 	protected void performFiltering(final CharSequence text, final int keyCode) {
 		String filterText = "";
-		super.performFiltering(filterText, keyCode);
+			super.performFiltering(filterText, keyCode);
 	}
 
 	@Override
